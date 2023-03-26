@@ -1,0 +1,84 @@
+//#include "mainwindow.h"
+
+//#include <QApplication>
+
+//int main(int argc, char *argv[])
+//{
+//    QApplication a(argc, argv);
+//    MainWindow w;
+//    w.show();
+//    return a.exec();
+//}
+#include <QApplication>
+#include <QtCore>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+class Reader: public QObject
+{
+    Q_OBJECT
+    int fd;
+    QSocketNotifier *notifier;
+//    static QByteArray buffer;
+    char buffer[128];
+
+public:
+    explicit Reader(QObject *p = 0): QObject(p) {
+        fd = open("/dev/hidraw0", O_RDONLY|O_NONBLOCK);
+        if (fd >= 0) {
+            notifier = new QSocketNotifier(fd, QSocketNotifier::Read, this);
+            connect(notifier, SIGNAL(activated(int)), this, SLOT(handleRead()));
+        }
+        else
+            qFatal("Could not open");
+
+    }
+public slots:
+    void handleRead() {
+
+
+        ssize_t count;
+//        char block[128];
+        notifier->setEnabled(false);
+//        do {
+            count = read(fd, buffer, 128);
+//            this->buffer.append(block, count);
+//        } while(count > 0);
+//        qDebug() << "Read done, buffer size";
+        this->interpretSerial();
+        notifier->setEnabled(true);
+    }
+    void interpretSerial()  {
+//        char buf[128];
+        int nr;
+//        qDebug() << "Read done, buffer size"<<sizeof(buffer);
+//        while ( (nr=read(0, buffer, sizeof(buffer))) ) {
+//            qDebug() << "Number: " <<nr;
+//          if ( nr < 0 )
+//            { perror("read(stdin)"); exit(1); }
+//          if ( nr != 49 ) {
+//            fprintf(stderr, "Unsupported report length %d."
+//                " Wrong hidraw device or kernel<2.6.26 ?\n", nr);
+//            exit(1);
+//          }
+          int ax = buffer[41]<<8 | buffer[42];
+          int ay = buffer[43]<<8 | buffer[44];
+          int az = buffer[45]<<8 | buffer[46];
+          int rz = buffer[47]<<8 | buffer[48]; // Needs another patch.
+          printf("ax=%4d ay=%4d az=%4d\n", ax, ay, az);
+          fflush(stdout);
+        }
+
+};
+
+
+
+int main(int argc, char **argv)
+{
+    QApplication app(argc, argv);
+    Reader r;
+    return app.exec();
+}
+#include "main.moc"
