@@ -32,6 +32,10 @@ if(ANDROID)
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
+    mywidget.h
+    mywidget.cpp
+    reader.h
+    reader.cpp
   )
 else()
   add_executable(dualshock3_9
@@ -39,6 +43,10 @@ else()
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
+    mywidget.h
+    mywidget.cpp
+    reader.h
+    reader.cpp
   )
 endif()
 
