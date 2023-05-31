@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(dualshock3_9 LANGUAGES CXX)
+project(dualshock3_UI_1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -25,9 +25,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #endif()
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Charts REQUIRED)
 
 if(ANDROID)
-  add_library(dualshock3_9 SHARED
+  add_library(dualshock3_UI_1 SHARED
     main.cpp
     mainwindow.cpp
     mainwindow.h
@@ -36,9 +37,13 @@ if(ANDROID)
     mywidget.cpp
     reader.h
     reader.cpp
+    scorewidget.h
+    scorewidget.cpp
+#    accelerometerwidget.h
+#    accelerometerwidget.cpp
   )
 else()
-  add_executable(dualshock3_9
+  add_executable(dualshock3_UI_1
     main.cpp
     mainwindow.cpp
     mainwindow.h
@@ -47,7 +52,11 @@ else()
     mywidget.cpp
     reader.h
     reader.cpp
+    scorewidget.h
+    scorewidget.cpp
+#    accelerometerwidget.h
+#    accelerometerwidget.cpp
   )
 endif()
 
-target_link_libraries(dualshock3_9 PRIVATE Qt5::Widgets)
+target_link_libraries(dualshock3_UI_1 PRIVATE Qt5::Widgets)

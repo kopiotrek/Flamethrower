@@ -12,6 +12,9 @@ void MyWidget::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.fillRect(rect(), Qt::black); // Fill the background with black color
 
+    int DUCK_COUNTER = 69;
+    emit sendScore(DUCK_COUNTER);
+
     QRectF target(width() * 0.33 , 0.0, height() / 2, width() / 2);    // 576x720
     QRectF source(0.0, 0.0, 576.0, 720.0);
     QString filename = QString("/home/pk/Wizualizacja_danych/assets/side_frames/frame_%1.png")
@@ -43,25 +46,25 @@ void MyWidget::paintEvent(QPaintEvent *event)
 
     painter.setCompositionMode(QPainter::CompositionMode_SourceAtop);
     if (!initialized){
-        std::array<int, 2> duck1 = {int(width() * 0.3), 0};
-        duckPos.push_back(duck1);
+        for(int i=0;i<2;i++){
+            std::array<int, 4> newDuck;
+            duckPos.push_back(newDuck);
+            generateDuck(&i);
+        }
+
+//        std::array<int, 4> duck1 = {int(width() * 0.3), 0, 0, 2}; //x_coord, y_coord, is_burning, speed
+//        duckPos.push_back(duck1);
         initialized = true;
+        std::cout<<"Initialized "<<std::endl;
     }
     animateDucks();
 
-    QPoint duck;
-    duck.setX(duckPos.at(0)[0]+height() / 10);
-    duck.setY(duckPos.at(0)[1] * height() / stepsCount + height() / 10);
 
-    bool collided = false;
+
     QPointF topLeft(target.topLeft().x()+width()*0.1,target.topLeft().y());
     QPointF topRight(target.topRight().x()-width()*0.1,target.topRight().y());
     QPointF bottomLeft(target.bottomLeft().x()+width()*0.1,target.bottomLeft().y());
     QPointF bottomRight(target.bottomRight().x()-width()*0.1,target.bottomRight().y());
-//    topLeft.setX(topLeft.x()+50);
-//    QPointF topRight = target.topRight();
-//    QPointF bottomLeft = target.bottomLeft();
-//    QPointF bottomRight = target.bottomRight();
     QPointF axis;
     axis.setX(centerX);
     axis.setY(centerY);
@@ -75,27 +78,27 @@ void MyWidget::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::red); // Set the pen color/*
     painter.drawConvexPolygon(points, 4);
 
-//    QRectF targetTest(topLeft,topRight,bottomLeft,bottomRight);    // 576x720
-
-//    painter.drawRect(targetTest); // Draw collide area
     QPainterPath path;
     QPolygonF burnArea(polygonPoints);
     path.addPolygon(burnArea);
-    collided = path.contains(duck);
 
-    painter.drawEllipse(duck, 5 , 5);
-
-    if (duckPos.at(0)[0] > topLeft.x() && duckPos.at(0)[0] < bottomRight.x()) {
-        if (duckPos.at(0)[1] > topLeft.y() && duckPos.at(0)[1] < bottomRight.y()) {
-            collided = true;
+    QPoint duck;
+    for(int i=0; i < duckPos.size(); i++){
+        if (!duckPos.at(i)[2]){
+            duck.setX(duckPos.at(i)[0]+height() / 20);
+            duck.setY(duckPos.at(i)[1] * height() / stepsCount + height() / 10);
+            duckPos.at(i)[2] = path.contains(duck);
         }
     }
+
+
+    painter.drawEllipse(duck, 5 , 5);
 
     for (int i = 0; i < duckPos.size(); i++){
         QRectF targetD(duckPos.at(i)[0], duckPos.at(i)[1] * height() / stepsCount, height() / 10, width() / 10);
         QRectF sourceD(0.0, 0.0, 192.0, 194.0);
         QString filenameD;
-        if (collided){
+        if (duckPos.at(i)[2]){
             filenameD = QString("/home/pk/Wizualizacja_danych/assets/duck_burning.png");
         }
         else{
@@ -129,11 +132,24 @@ void MyWidget::translate_point(QPointF *p, double transX, double transY) {
 
 void MyWidget::animateDucks(){
     for (int i=0; i<duckPos.size(); i++){
-        duckPos.at(i)[1]+=1;
+        duckPos.at(i)[1]+=duckPos.at(i)[3];
         if (duckPos.at(i)[1]>stepsCount){
-            duckPos.at(i)[1]=0;
+            generateDuck(&i);
         }
     }
+}
+
+void MyWidget::generateDuck(int *i){
+    std::random_device rd; // obtain a random number from hardware
+    std::mt19937 gen(rd()); // seed the generator
+    std::uniform_int_distribution<> distr_x(width()*0.1, width()*0.9); // define the range
+    std::uniform_int_distribution<> distr_y(-100, -10); // define the range
+    std::uniform_int_distribution<> distr_v(1, 3); // define the range
+
+    duckPos.at(*i)[0]=distr_x(gen); //x
+    duckPos.at(*i)[1]=distr_y(gen); //y
+    duckPos.at(*i)[2]=0; //not burning
+    duckPos.at(*i)[3]=distr_v(gen); //speed
 }
 
 void MyWidget::resizeEvent(QResizeEvent *event)
@@ -157,9 +173,16 @@ void MyWidget::startAnimation()
 void MyWidget::getLean()
 {
     // Calculate theta based on the resized dimensions if needed
-     int ax = r.getAx();
+//     int ax = r.getAx();
 //    int ax = 5000;
-    theta = (-ax) / 364;
+//    theta = (-ax) / 364;
+    theta+=increment;
+    if(theta>90){
+        increment=-increment;
+    }
+    if(theta<-90){
+        increment=-increment;
+    }
 }
 
 void MyWidget::animate()
@@ -167,3 +190,5 @@ void MyWidget::animate()
     // Zmieniaj parametry rysowania, aby uzyskać animację
     update();
 }
+
+

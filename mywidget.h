@@ -19,17 +19,20 @@ Animacja jest obracana o kąt wyznaczony przez wartość odczytaną z obiektu kl
 #include <QPicture>
 #include <QPointF>
 #include <QString>
+#include <QLabel>
 #include <vector>
 #include <cmath>
+#include <iostream>
 #include "reader.h"
 
 
 class MyWidget : public QWidget
 {
     Q_OBJECT;
-    Reader r;
-    std::vector<std::array<int, 2>> duckPos;
-    bool initialized = false;
+//    Reader r;
+    signals:
+        void sendScore(int);
+        void sendAx(int);
 public:
     /**
     * @brief Konstruktor klasy MyWidget.
@@ -50,12 +53,16 @@ protected:
     *
     * @param event Zdarzenie rysowania, domyślnie nullptr.
     */
+
     void paintEvent(QPaintEvent *event) override;
     double theta = 0;
     int frameNumber = 0;
     bool startup = false;
     int stepsCount = 200;
-
+    std::vector<std::array<int, 4>> duckPos;
+    bool initialized = false;
+    int increment=3;
+    float tim1 = 0;
 private:
     void resizeEvent(QResizeEvent *event);
     /**
@@ -84,6 +91,7 @@ private:
     void rotate_point(QPointF *p, double angle, QPointF center);
 
     void translate_point(QPointF *p, double transX, double transY);
-};
 
+    void generateDuck(int *i);
+};
 #endif // MYWIDGET_H
